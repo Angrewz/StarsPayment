@@ -58,9 +58,7 @@ def main() -> Application:
     application.add_handler(PreCheckoutQueryHandler(precheckout_callback))
     application.add_handler(MessageHandler(filters.SUCCESSFUL_PAYMENT, successful_payment_callback))
 
-    # Установка вебхука
-    asyncio.run(set_webhook(application))
-
     return application
 
 bot = main()
+asyncio.run(set_webhook(bot))

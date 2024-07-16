@@ -39,7 +39,7 @@ async def successful_payment_callback(update: Update, context: CallbackContext) 
     await update.message.reply_text(response)
 
 async def set_webhook(application: Application):
-    webhook_url = f"https://your-vercel-app.vercel.app/api/webhook"
+    webhook_url = f"https://stars-payment.vercel.app/api/webhook"
     await application.bot.set_webhook(webhook_url)
 
 def main() -> None:

@@ -2,16 +2,21 @@ from telegram import Update, LabeledPrice
 from telegram.ext import Application, CommandHandler, MessageHandler, PreCheckoutQueryHandler, CallbackContext, filters
 import os
 import asyncio
+import logging
+
+logging.basicConfig(level=logging.INFO)
 
 BOT_TOKEN = os.getenv('YOUR_BOT_TOKEN')
 PAYMENT_PROVIDER_TOKEN = 'YOUR_PAYMENT_PROVIDER_TOKEN'
 
 # Обработчик команды /start
 async def start(update: Update, context: CallbackContext) -> None:
+    logging.info("Start command received")
     await update.message.reply_text("Привет! Введи свой вопрос, и я попрошу оплату в 1 ⭐️ перед ответом.")
 
 # Обработчик получения сообщений (вопросов) от пользователей
 async def handle_question(update: Update, context: CallbackContext) -> None:
+    logging.info(f"Question received: {update.message.text}")
     chat_id = update.message.chat_id
     context.user_data['question'] = update.message.text
     title = "Оплата за ответ"
@@ -40,9 +45,11 @@ async def successful_payment_callback(update: Update, context: CallbackContext) 
 
 async def set_webhook(application: Application):
     webhook_url = f"https://stars-payment.vercel.app/api/webhook"
+    logging.info(f"Setting webhook to: {webhook_url}")
     await application.bot.set_webhook(webhook_url)
 
-def main() -> None:
+def main() -> Application:
+    logging.info("Starting bot")
     application = Application.builder().token(BOT_TOKEN).build()
 
     # Регистрация обработчиков
@@ -54,8 +61,6 @@ def main() -> None:
     # Установка вебхука
     asyncio.run(set_webhook(application))
 
-    # Запуск приложения (не используется для вебхуков)
-    # application.run_polling()
+    return application
 
-if __name__ == '__main__':
-    main()
+bot = main()

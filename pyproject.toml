@@ -9,6 +9,7 @@ python = ">=3.10.0,<3.11"
 pillow = "^10.0.0"
 telegram = "^0.0.1"
 python-telegram-bot = "20.4"
+fastapi = "^0.111.1"
 
 [tool.pyright]
 # https://github.com/microsoft/pyright/blob/main/docs/configuration.md

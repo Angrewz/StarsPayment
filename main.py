@@ -1,32 +1,25 @@
 from telegram import Update, LabeledPrice
-from telegram.ext import (
-    Application,
-    CommandHandler,
-    MessageHandler,
-    PreCheckoutQueryHandler,
-    CallbackContext,
-    filters,
-)
+from telegram.ext import Application, CommandHandler, MessageHandler, PreCheckoutQueryHandler, CallbackContext, filters
 import os
+import asyncio
 
-# Замените на ваш токен бота и токен провайдера платежей
-BOT_TOKEN = os.environ['YOUR_BOT_TOKEN']
+BOT_TOKEN = os.getenv('YOUR_BOT_TOKEN')
 PAYMENT_PROVIDER_TOKEN = 'YOUR_PAYMENT_PROVIDER_TOKEN'
 
 # Обработчик команды /start
 async def start(update: Update, context: CallbackContext) -> None:
-    await update.message.reply_text("Привет! Введите ваш вопрос, и я попрошу оплату в 1 'Звезду' за ответ.")
+    await update.message.reply_text("Привет! Введи свой вопрос, и я попрошу оплату в 1 ⭐️ перед ответом.")
 
 # Обработчик получения сообщений (вопросов) от пользователей
 async def handle_question(update: Update, context: CallbackContext) -> None:
     chat_id = update.message.chat_id
     context.user_data['question'] = update.message.text
     title = "Оплата за ответ"
-    description = "Платный ответ на ваш вопрос"
+    description = "Ответ в обработке. Закончу сразу после оплаты."
     payload = "Custom-Payload"
     currency = "XTR"  # Используйте XTR для "Звёзд"
     price = 1  # Установите цену в минимальных единицах "Звёзд" (1 Звезда = 100 единиц)
-    prices = [LabeledPrice("Ответ на вопрос", price)]
+    prices = [LabeledPrice("Оплата ответа на важнейший вопрос", price)]
 
     # Отправка инвойса пользователю
     await context.bot.send_invoice(chat_id, title, description, payload, PAYMENT_PROVIDER_TOKEN, currency, prices)
@@ -42,11 +35,14 @@ async def precheckout_callback(update: Update, context: CallbackContext) -> None
 # Обработчик успешной оплаты
 async def successful_payment_callback(update: Update, context: CallbackContext) -> None:
     question = context.user_data.get('question', '')
-    response = f"Ваш ответ на вопрос: {question}"
+    response = f"{question} - хороший вопрос, но я не знаю на него ответ. Зато желаю тебе всех благ. Добро возвращается! Смайлик"
     await update.message.reply_text(response)
 
+async def set_webhook(application: Application):
+    webhook_url = f"https://your-vercel-app.vercel.app/api/webhook"
+    await application.bot.set_webhook(webhook_url)
+
 def main() -> None:
-    # Создание и запуск приложения
     application = Application.builder().token(BOT_TOKEN).build()
 
     # Регистрация обработчиков
@@ -55,8 +51,11 @@ def main() -> None:
     application.add_handler(PreCheckoutQueryHandler(precheckout_callback))
     application.add_handler(MessageHandler(filters.SUCCESSFUL_PAYMENT, successful_payment_callback))
 
-    # Запуск приложения
-    application.run_polling()
+    # Установка вебхука
+    asyncio.run(set_webhook(application))
+
+    # Запуск приложения (не используется для вебхуков)
+    # application.run_polling()
 
 if __name__ == '__main__':
     main()
